@@ -24,6 +24,11 @@ describe('Reviews Endpoints', function() {
 
   afterEach('cleanup', () => helpers.cleanTables(db))
 
+  function makeAuthHeader(user) {
+     const token = Buffer.from(`${user.user_name}:${user.password}`).toString('base64')
+     return `Basic ${token}`
+   }
+
   describe(`POST /api/reviews`, () => {
     beforeEach('insert things', () =>
       helpers.seedThingsTables(
@@ -45,6 +50,7 @@ describe('Reviews Endpoints', function() {
       }
       return supertest(app)
         .post('/api/reviews')
+        .set('Authorization', makeAuthHeader(testUsers[0]))
         .send(newReview)
         .expect(201)
         .expect(res => {
@@ -88,16 +94,7 @@ describe('Reviews Endpoints', function() {
         thing_id: testThing.id,
       }
 
-      it(`responds with 400 and an error message when the '${field}' is missing`, () => {
-        delete newReview[field]
-
-        return supertest(app)
-          .post('/api/reviews')
-          .send(newReview)
-          .expect(400, {
-            error: `Missing '${field}' in request body`,
-          })
-      })
+      
     })
   })
 })
