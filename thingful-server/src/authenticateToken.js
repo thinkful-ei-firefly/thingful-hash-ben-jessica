@@ -1,4 +1,5 @@
 /* eslint-disable strict */
+const bcrypt = require('bcryptjs');
 function authenticateToken(req, res, next) {
 
   const authToken = req.get('Authorization') || '';
@@ -26,9 +27,16 @@ function authenticateToken(req, res, next) {
       if (!user) {
         return res.status(401).json({ error: 'Unauthorized request'});
       }
-      req.user = user;
-      console.log(user);
-      next();
+
+      return bcrypt.compare(tokenPassword, user.password)
+        .then(passwordsMatch => {
+          if(!passwordsMatch) {
+            return res.status(401).json({ error: 'Unauthorized request'});
+          }
+          req.user = user;
+          next();
+        });      
+      
     })
     .catch(next);
 
